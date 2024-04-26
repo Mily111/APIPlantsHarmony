@@ -1,5 +1,6 @@
 const db = require("../config/db"); // Assurez-vous que le chemin est correct
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
   const { username, email_user, password_user } = req.body;
@@ -57,70 +58,45 @@ function isValidEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
-// const User = require("../models/userModel");
-// const jwt = require("jsonwebtoken");
+exports.loginUser = async (req, res) => {
+  const { username, password_user } = req.body;
+  console.log("Received username:", username); // Affiche le nom d'utilisateur reçu
+  console.log("Received password_user:", password_user); // Affiche le mot de passe reçu
 
-// exports.registerUser = async (req, res) => {
-//   User.create(req.body, (error, results) => {
-//     if (error) {
-//       res.status(500).json({ message: "Error registering new user", error });
-//     } else {
-//       res
-//         .status(201)
-//         .json({ message: "New user registered", userId: results.insertId });
-//     }
-//   });
-// };
+  try {
+    const query = `SELECT * FROM users WHERE username = ?`;
+    const [users] = await db.execute(query, [username]);
+    console.log("User query result:", users); // Affiche le résultat de la requête
 
-// userController.js
-// exports.registerUser = async (req, res) => {
-//   const { username, email_user, password_user } = req.body;
-
-//   try {
-//     const hashedPassword = await bcrypt.hash(password_user, 10);
-//     const result = await db.query(
-//       "INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)",
-//       [username, email_user, hashedPassword]
-//     );
-
-//     res
-//       .status(201)
-//       .send({
-//         message: "User registered successfully",
-//         userId: result.insertId,
-//       });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .send({ message: "Failed to register user", error: error.message });
-//   }
-// };
-
-exports.loginUser = (req, res) => {
-  User.findByUsername(req.body.username, async (error, users) => {
-    if (error) {
-      return res.status(500).json({ message: "Error logging in", error });
-    }
     if (users.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
+
     const user = users[0];
+    if (!user.password_user) {
+      return res.status(404).json({ message: "Password not set for user" });
+    }
     const passwordIsValid = await bcrypt.compare(
-      req.body.password_user,
+      password_user,
       user.password_user
     );
+
     if (!passwordIsValid) {
       return res.status(401).json({ message: "Password is incorrect" });
     }
-    const token = jwt.sign({ id: user.Id_user }, process.env.JWT_SECRET, {
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.json({ message: "User logged in successfully", token });
-  });
-};
 
-// exports.registerUser = async (req, res) => {
-//   const { username, email, password } = req.body;
+    res.json({ message: "User logged in successfully", token });
+  } catch (error) {
+    console.error("Error in loginUser:", error);
+    return res
+      .status(500)
+      .json({ message: "Error logging in", error: error.message });
+  }
+};
 
 // exports.getAllUsers = (req, res) => {
 //   db.query("SELECT * FROM users", (err, results) => {
@@ -130,30 +106,6 @@ exports.loginUser = (req, res) => {
 //       res.status(200).json(results);
 //     }
 //   });
-// };
-
-// exports.createUser = (req, res) => {
-//   const { username, email_user, password_user, Id_type_user_rights } = req.body;
-//   db.query(
-//     "INSERT INTO users (username, email_user, password_user, Id_type_user_rights) VALUES (?, ?, ?, ?)",
-//     [username, email_user, password_user, Id_type_user_rights],
-//     (err, result) => {
-//       if (err) {
-//         res.status(500).send({ message: "Error creating user", error: err });
-//       } else {
-//         res
-//           .status(201)
-//           .send({
-//             message: "User created successfully",
-//             userId: result.insertId,
-//           });
-//       }
-//     }
-//   );
-// };
-
-// exports.getUserById = (req, res) => {
-//   // Add logic to get a user by ID
 // };
 
 // exports.updateUser = (req, res) => {
