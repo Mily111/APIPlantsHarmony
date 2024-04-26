@@ -1,0 +1,25 @@
+const db = require("../config/db"); // Assurez-vous que le chemin est correct, il peut être nécessaire de modifier le chemin relatif
+
+global.resetTestData = async () => {
+  let connection;
+  try {
+    connection = await db.getConnection();
+    await connection.query("DELETE FROM users WHERE username LIKE 'testuser%'");
+  } catch (error) {
+    console.error("Failed to reset test data:", error);
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+global.clearTestData = async () => {
+  let connection;
+  try {
+    connection = await db.getConnection();
+    await connection.query("DELETE FROM users WHERE username LIKE 'testuser%'");
+  } catch (error) {
+    console.error("Failed to clear test data:", error);
+  } finally {
+    if (connection) connection.release();
+  }
+};

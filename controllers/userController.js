@@ -4,10 +4,34 @@ const bcrypt = require("bcryptjs");
 exports.registerUser = async (req, res) => {
   const { username, email_user, password_user } = req.body;
 
+  // Validation des champs requis
   if (!username || !email_user || !password_user) {
-    return res.status(400).json({ message: "Missing data" });
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
+  // Validation de l'email
+  if (!isValidEmail(email_user)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  // Vérifier l'existence du nom d'utilisateur ou de l'email
+  try {
+    const checkUser = `SELECT * FROM users WHERE username = ? OR email_user = ?`;
+    const [userExists] = await db.execute(checkUser, [username, email_user]);
+
+    if (userExists.length > 0) {
+      return res
+        .status(409)
+        .json({ message: "Username or email already exists" });
+    }
+  } catch (checkError) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: checkError.message,
+    });
+  }
+
+  // Essayer de créer l'utilisateur
   try {
     const hashedPassword = await bcrypt.hash(password_user, 10);
     const query = `INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)`;
@@ -17,15 +41,21 @@ exports.registerUser = async (req, res) => {
       hashedPassword,
     ]);
 
-    res
-      .status(201)
-      .json({ message: "New user registered", userId: results.insertId });
-  } catch (error) {
-    res
+    res.status(201).json({
+      message: "User registered successfully",
+      userId: results.insertId,
+    });
+  } catch (checkError) {
+    // Utiliser un message générique pour toutes les erreurs serveur
+    return res
       .status(500)
-      .json({ message: "Error registering new user", error: error.message });
+      .json({ message: "Internal server error", error: checkError.message });
   }
 };
+
+function isValidEmail(email) {
+  return /\S+@\S+\.\S+/.test(email);
+}
 
 // const User = require("../models/userModel");
 // const jwt = require("jsonwebtoken");
