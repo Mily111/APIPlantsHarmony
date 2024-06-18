@@ -1,43 +1,37 @@
-const db = require("../config/db");
+const plantModel = require("../models/plantModel");
 
-exports.getAllPlants = (req, res) => {
-  db.query("SELECT * FROM generic_plants", (err, results) => {
-    if (err) {
-      res.status(500).send("Error retrieving plants from database");
+exports.getPlantNames = async (req, res) => {
+  try {
+    const plants = await plantModel.getPlantNamesFromDB();
+    res.json(plants);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération des noms de plantes" });
+  }
+};
+
+exports.addPlantSuggestion = async (req, res) => {
+  const { plantName, stateExchange, userId } = req.body;
+  const photo = req.file.path;
+
+  try {
+    const result = await plantModel.addPlantSuggestionToDB({
+      plantName,
+      stateExchange,
+      photo,
+      userId,
+    });
+    if (result) {
+      res.json({ message: "Plant suggestion added" });
     } else {
-      res.status(200).json(results);
+      res
+        .status(500)
+        .json({ message: "Erreur lors de l'ajout de la plante suggérée" });
     }
-  });
-};
-
-exports.createPlant = (req, res) => {
-  // Add logic to create a plant
-};
-
-exports.getPlantById = (req, res) => {
-  const { id } = req.params;
-
-  db.query(
-    "SELECT * FROM generic_plants WHERE Id_plant = ?",
-    [id],
-    (err, results) => {
-      if (err) {
-        res
-          .status(500)
-          .json({ message: "Error fetching plant from database", error: err });
-      } else if (results.length === 0) {
-        res.status(404).json({ message: "Plant not found" });
-      } else {
-        res.status(200).json(results[0]);
-      }
-    }
-  );
-};
-
-exports.updatePlant = (req, res) => {
-  // Add logic to update a plant
-};
-
-exports.deletePlant = (req, res) => {
-  // Add logic to delete a plant
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Erreur lors de l'ajout de la plante suggérée" });
+  }
 };
