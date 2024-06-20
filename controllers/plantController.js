@@ -38,3 +38,29 @@ exports.addPlantSuggestion = async (req, res) => {
     });
   }
 };
+
+exports.getUserPlants = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const [plants] = await db.query(
+      "SELECT * FROM plante_suggested WHERE Id_user = ?",
+      [userId]
+    );
+    res.status(200).json(plants);
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred on the server", error });
+  }
+};
+
+exports.deleteSuggestedPlant = async (req, res) => {
+  const plantId = req.params.plantId;
+  try {
+    await db.query(
+      "DELETE FROM plante_suggested WHERE Id_plante_suggested = ?",
+      [plantId]
+    );
+    res.status(200).json({ message: "Plant deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred on the server", error });
+  }
+};

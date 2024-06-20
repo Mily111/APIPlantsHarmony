@@ -28,5 +28,10 @@ router.post(
   upload.single("photo"),
   plantController.addPlantSuggestion
 );
+router.get("/getUserPlant/:userId", plantController.getUserPlants);
+router.delete(
+  "/deletetUserPlant/:plantId",
+  plantController.deleteSuggestedPlant
+);
 
 module.exports = router;

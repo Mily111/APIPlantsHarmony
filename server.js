@@ -6,6 +6,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const userRoutes = require("./routes/userRoutes");
 const plantRoutes = require("./routes/plantRoutes");
+const plantAdviceRoutes = require("./routes/plantAdviceRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 const swaggerJsDoc = require("swagger-jsdoc");
@@ -41,6 +42,7 @@ app.use(express.json());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/plants", plantRoutes);
+app.use("/api/plantsAdvice", plantAdviceRoutes);
 app.use("/api/trades", tradeRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
