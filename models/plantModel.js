@@ -79,7 +79,47 @@ async function addOrUpdatePlantSuggestion({
   }
 }
 
+async function getUserPlants(userId) {
+  const query = "SELECT * FROM plante_suggested WHERE id_user = ?";
+  try {
+    const [plants] = await db.query(query, [userId]);
+    return plants;
+  } catch (error) {
+    console.error("Error fetching user's plants:", error);
+    throw new Error("Database error");
+  }
+}
+
+async function deleteUserPlantByID(plantId) {
+  const query = "DELETE FROM plante_suggested WHERE id_plante_suggested = ?";
+  try {
+    const [result] = await db.execute(query, [plantId]);
+    console.log(`Deleted ${result.affectedRows} rows`); // Log le nombre de lignes supprimées
+    return result;
+  } catch (error) {
+    console.error("Error deleting user plant from DB:", error);
+    throw new Error("Database error");
+  }
+}
+
+// // Fonction pour supprimer une plante par ID
+// async function deletePlantById(plantId) {
+//   console.log("enter deleteById");
+//   try {
+//     await db.query(
+//       "DELETE FROM plante_suggested WHERE Id_plante_suggested = ?",
+//       [plantId]
+//     );
+//     console.log("Plant deleted from DB:", plantId);
+//   } catch (error) {
+//     console.error("Error deleting plant by ID:", error);
+//     throw new Error("Database error");
+//   }
+// }
+
 module.exports = {
   getPlantNamesFromDB,
   addOrUpdatePlantSuggestion,
+  getUserPlants,
+  deleteUserPlantByID,
 };

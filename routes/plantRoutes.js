@@ -29,9 +29,12 @@ router.post(
   plantController.addPlantSuggestion
 );
 router.get("/getUserPlant/:userId", plantController.getUserPlants);
-router.delete(
-  "/deletetUserPlant/:plantId",
-  plantController.deleteSuggestedPlant
-);
+// router.get("/getUserPlant/:userId", () => {
+//   console.log("toiti");
+// });
+router.delete("/deleteUserPlant/:plantId", plantController.deleteUserPlant);
+// router.delete("/deletetUserPlant/:plantId", () => {
+//   console.log("toto");
+// });
 
 module.exports = router;

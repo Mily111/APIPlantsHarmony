@@ -42,25 +42,43 @@ exports.addPlantSuggestion = async (req, res) => {
 exports.getUserPlants = async (req, res) => {
   const userId = req.params.userId;
   try {
-    const [plants] = await db.query(
-      "SELECT * FROM plante_suggested WHERE Id_user = ?",
-      [userId]
-    );
+    console.log(`Fetching plants for user ID: ${userId}`); // Log user ID
+    const plants = await plantModel.getUserPlants(userId); // Utilisez la fonction du modèle
+
+    if (plants.length === 0) {
+      console.log(`No plants found for user ID: ${userId}`); // Log when no plants found
+      return res.status(404).json({ message: "No plants found" });
+    }
+    console.log(`Plants found for user ID: ${userId}`, plants); // Log when plants are found
     res.status(200).json(plants);
   } catch (error) {
+    console.error("Error fetching user's plants:", error); // Log error
     res.status(500).json({ message: "An error occurred on the server", error });
   }
 };
 
-exports.deleteSuggestedPlant = async (req, res) => {
+exports.deleteUserPlant = async (req, res) => {
   const plantId = req.params.plantId;
+  console.log(`Attempting to delete plant with ID: ${plantId}`); // Log l'ID de la plante
+
   try {
-    await db.query(
-      "DELETE FROM plante_suggested WHERE Id_plante_suggested = ?",
-      [plantId]
-    );
+    const result = await plantModel.deleteUserPlantByID(plantId);
+    console.log(`Deletion result: ${JSON.stringify(result)}`); // Log le résultat de la suppression
     res.status(200).json({ message: "Plant deleted successfully" });
   } catch (error) {
+    console.error("Error deleting user plant:", error);
     res.status(500).json({ message: "An error occurred on the server", error });
   }
 };
+// exports.deleteUserPlant = async (req, res) => {
+//   console.log("enter in deleteUserplant");
+//   const plantId = req.params.plantId;
+//   console.log(plantId);
+//   try {
+//     await plantModel.deletePlantById(plantId);
+//     res.status(200).json({ message: "Plant deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting plant:", error);
+//     res.status(500).json({ message: "An error occurred on the server", error });
+//   }
+// };

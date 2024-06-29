@@ -104,32 +104,6 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// exports.getUserProfil = async (req, res) => {
-//   console.log("getuserprofil");
-//   const token = req.headers["authorization"];
-//   if (!token) {
-//     return res.status(401).json({ message: "Token is missing" });
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     const userId = decoded.id;
-//     const query = `SELECT username, email_user FROM users WHERE Id_user = ?`;
-//     const [users] = await db.execute(query, [userId]);
-
-//     if (users.length === 0) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     const user = users[0];
-//     res.json({ user });
-//   } catch (error) {
-//     console.error("Error in getUserProfile:", error);
-//     return res
-//       .status(500)
-//       .json({ message: "Error fetching user profile", error: error.message });
-//   }
-// };
 exports.getUserProfil = async (req, res) => {
   console.log("getuserprofil");
   const token = req.headers["authorization"];
@@ -140,7 +114,7 @@ exports.getUserProfil = async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id;
-    const query = `SELECT id_user, username, email_user FROM users WHERE id_user = ?`; // Ajoutez id_user
+    const query = `SELECT id_user, username, email_user FROM users WHERE id_user = ?`;
     const [users] = await db.execute(query, [userId]);
 
     if (users.length === 0) {
@@ -156,32 +130,6 @@ exports.getUserProfil = async (req, res) => {
       .json({ message: "Error fetching user profile", error: error.message });
   }
 };
-
-// exports.updateUser = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-//     const { username, email_user } = req.body;
-//     console.log(req.body);
-//     console.log(`Updating user ${userId} with data: `, {
-//       username,
-//       email_user,
-//     });
-
-//     const [result] = await db.query(
-//       "UPDATE users SET username = ?, email_user = ? WHERE id_user = ?",
-//       [username, email_user, userId]
-//     );
-
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     res.json({ message: "User updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating user: ", error);
-//     res.status(500).json({ message: "Failed to update user" });
-//   }
-// };
 
 exports.updateUser = async (req, res) => {
   try {
