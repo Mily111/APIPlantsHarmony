@@ -58,8 +58,14 @@ const jwt = require("jsonwebtoken");
 //   return /\S+@\S+\.\S+/.test(email);
 // }
 
+function isValidEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
+}
 exports.registerUser = async (req, res) => {
-  const { username, email_user, password_user, isTestUser } = req.body;
+  const { username, email_user, password_user } = req.body;
+
+  console.log("Received request:", req.body); // Log les données reçues
 
   // Validation des champs requis
   if (!username || !email_user || !password_user) {
@@ -82,6 +88,7 @@ exports.registerUser = async (req, res) => {
         .json({ message: "Username or email already exists" });
     }
   } catch (checkError) {
+    console.error("Database query error: ", checkError.message);
     return res.status(500).json({
       message: "Internal server error",
       error: checkError.message,
@@ -91,29 +98,24 @@ exports.registerUser = async (req, res) => {
   // Essayer de créer l'utilisateur
   try {
     const hashedPassword = await bcrypt.hash(password_user, 10);
-    const query = `INSERT INTO users (username, email_user, password_user, isTestUser) VALUES (?, ?, ?, ?)`;
+    const query = `INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)`;
     const [results] = await db.execute(query, [
       username,
       email_user,
       hashedPassword,
-      isTestUser || false,
     ]);
 
     res.status(201).json({
       message: "User registered successfully",
       userId: results.insertId,
     });
-  } catch (checkError) {
-    // Utiliser un message générique pour toutes les erreurs serveur
+  } catch (insertError) {
+    console.error("User insertion error: ", insertError.message);
     return res
       .status(500)
-      .json({ message: "Internal server error", error: checkError.message });
+      .json({ message: "Internal server error", error: insertError.message });
   }
 };
-
-function isValidEmail(email) {
-  return /\S+@\S+\.\S+/.test(email);
-}
 
 exports.loginUser = async (req, res) => {
   const { username, password_user } = req.body;
