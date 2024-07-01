@@ -2,8 +2,64 @@ const db = require("../config/db"); // Assurez-vous que le chemin est correct
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// exports.registerUser = async (req, res) => {
+//   const { username, email_user, password_user } = req.body;
+
+//   // Validation des champs requis
+//   if (!username || !email_user || !password_user) {
+//     return res.status(400).json({ message: "Missing required fields" });
+//   }
+
+//   // Validation de l'email
+//   if (!isValidEmail(email_user)) {
+//     return res.status(400).json({ message: "Invalid email format" });
+//   }
+
+//   // Vérifier l'existence du nom d'utilisateur ou de l'email
+//   try {
+//     const checkUser = `SELECT * FROM users WHERE username = ? OR email_user = ?`;
+//     const [userExists] = await db.execute(checkUser, [username, email_user]);
+
+//     if (userExists.length > 0) {
+//       return res
+//         .status(409)
+//         .json({ message: "Username or email already exists" });
+//     }
+//   } catch (checkError) {
+//     return res.status(500).json({
+//       message: "Internal server error",
+//       error: checkError.message,
+//     });
+//   }
+
+//   // Essayer de créer l'utilisateur
+//   try {
+//     const hashedPassword = await bcrypt.hash(password_user, 10);
+//     const query = `INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)`;
+//     const [results] = await db.execute(query, [
+//       username,
+//       email_user,
+//       hashedPassword,
+//     ]);
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       userId: results.insertId,
+//     });
+//   } catch (checkError) {
+//     // Utiliser un message générique pour toutes les erreurs serveur
+//     return res
+//       .status(500)
+//       .json({ message: "Internal server error", error: checkError.message });
+//   }
+// };
+
+// function isValidEmail(email) {
+//   return /\S+@\S+\.\S+/.test(email);
+// }
+
 exports.registerUser = async (req, res) => {
-  const { username, email_user, password_user } = req.body;
+  const { username, email_user, password_user, isTestUser } = req.body;
 
   // Validation des champs requis
   if (!username || !email_user || !password_user) {
@@ -35,11 +91,12 @@ exports.registerUser = async (req, res) => {
   // Essayer de créer l'utilisateur
   try {
     const hashedPassword = await bcrypt.hash(password_user, 10);
-    const query = `INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)`;
+    const query = `INSERT INTO users (username, email_user, password_user, isTestUser) VALUES (?, ?, ?, ?)`;
     const [results] = await db.execute(query, [
       username,
       email_user,
       hashedPassword,
+      isTestUser || false,
     ]);
 
     res.status(201).json({
