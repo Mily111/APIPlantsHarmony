@@ -5,6 +5,7 @@ const multer = require("multer");
 const path = require("path");
 // Définissez le chemin complet vers le dossier public/images/plants de votre application Next.js
 // Chemin vers le dossier public/images/plants de votre application Next.js
+
 const nextjsPublicPath = path.join(
   __dirname,
   "../../plants-harmony-web/public/images/plants"
@@ -24,6 +25,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.get("/plantsName", plantController.getPlantNames);
+router.get("/available", plantController.getAvailablePlants);
 router.post(
   "/plantSuggestion",
   upload.single("photo"),

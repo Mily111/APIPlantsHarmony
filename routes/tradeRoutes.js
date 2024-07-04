@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router();
 const tradeController = require("../controllers/tradeController");
 
+router.get("/available", tradeController.getAvailableTrades);
 router.post("/create", tradeController.createTradeOffer);
 router.get("/user/:userId", tradeController.getTradeOffersForUser);
 router.put("/status/:tradeOfferId", tradeController.updateTradeOfferStatus);

@@ -1,3 +1,5 @@
+// controllers/tradeController.js
+
 const tradeModel = require("../models/tradeModel");
 
 exports.createTradeOffer = async (req, res) => {
@@ -93,5 +95,27 @@ exports.markNotificationAsRead = async (req, res) => {
   } catch (error) {
     console.error("Error marking notification as read:", error);
     res.status(500).json({ message: "Error marking notification as read" });
+  }
+};
+
+exports.getAvailableTrades = async (req, res) => {
+  try {
+    const suggestedPlants = [
+      {
+        id_plante_suggested: 1,
+        quantity_possess: 10,
+        date_possess: "2023-07-01",
+        photo: "url_to_photo",
+        state_exchange: "available",
+        id_user: 2,
+        id_plant: 3,
+        name_plant: "Rose",
+      },
+      // Ajoutez d'autres plantes suggérées si nécessaire
+    ];
+    res.status(200).json(suggestedPlants);
+  } catch (error) {
+    console.error("Error fetching available trades:", error);
+    res.status(500).json({ message: "Error fetching available trades" });
   }
 };

@@ -1,7 +1,8 @@
 const db = require("../config/db"); // Assurez-vous que le chemin est correct
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const fs = require("fs");
+const path = require("path");
 // exports.registerUser = async (req, res) => {
 //   const { username, email_user, password_user } = req.body;
 
@@ -237,21 +238,130 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+// exports.deleteUser = async (req, res) => {
+//   const { id } = req.params;
+
+//   try {
+//     const [result] = await db.query("DELETE FROM users WHERE id_user = ?", [
+//       id,
+//     ]);
+
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     res.json({ message: "User deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting user:", error);
+//     res.status(500).json({ message: "An error occurred while deleting user" });
+//   }
+// };
+
+// exports.deleteUser = async (req, res) => {
+//   const { id } = req.params;
+
+//   try {
+//     // Récupérer les chemins des images des plantes de l'utilisateur
+//     const [plants] = await db.query(
+//       "SELECT photo FROM plante_suggested WHERE id_user = ?",
+//       [id]
+//     );
+
+//     // Supprimer les entrées de la table plante_suggested
+//     await db.query("DELETE FROM plante_suggested WHERE id_user = ?", [id]);
+
+//     // Supprimer l'utilisateur
+//     const [result] = await db.query("DELETE FROM users WHERE id_user = ?", [
+//       id,
+//     ]);
+
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Supprimer les fichiers images associés
+//     plants.forEach((plant) => {
+//       if (plant.photo) {
+//         const filePath = path.join(
+//           __dirname,
+//           "../../plants-harmony-web/public/images/plants"
+//         );
+//         fs.unlink(filePath, (err) => {
+//           if (err) {
+//             console.error("Erreur lors de la suppression de l'image:", err);
+//           }
+//         });
+//       }
+//     });
+
+//     res.json({ message: "User deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting user:", error);
+//     res.status(500).json({ message: "An error occurred while deleting user" });
+//   }
+// };
+
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;
 
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+
   try {
-    const [result] = await db.query("DELETE FROM users WHERE id_user = ?", [
+    // Récupérer les chemins des images des plantes de l'utilisateur
+    const [plants] = await connection.query(
+      "SELECT photo FROM plante_suggested WHERE id_user = ?",
+      [id]
+    );
+
+    // Supprimer les entrées de la table plante_suggested
+    await connection.query("DELETE FROM plante_suggested WHERE id_user = ?", [
       id,
     ]);
 
+    // Supprimer l'utilisateur
+    const [result] = await connection.query(
+      "DELETE FROM users WHERE id_user = ?",
+      [id]
+    );
+
     if (result.affectedRows === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Supprimer les fichiers images associés
+    plants.forEach((plant) => {
+      if (plant.photo) {
+        const filePath = path.resolve(
+          __dirname,
+          "../../plants-harmony-web/public/",
+          plant.photo
+        );
+        console.log("Attempting to delete:", filePath); // Log the file path
+
+        // Vérifiez que le fichier existe avant de le supprimer
+        if (fs.existsSync(filePath)) {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error("Erreur lors de la suppression de l'image:", err);
+            } else {
+              console.log("Successfully deleted:", filePath);
+            }
+          });
+        } else {
+          console.warn("File does not exist:", filePath);
+        }
+      }
+    });
+
+    await connection.commit();
     res.json({ message: "User deleted successfully" });
   } catch (error) {
+    await connection.rollback();
     console.error("Error deleting user:", error);
     res.status(500).json({ message: "An error occurred while deleting user" });
+  } finally {
+    connection.release();
   }
 };

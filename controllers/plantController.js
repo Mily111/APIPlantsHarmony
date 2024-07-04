@@ -57,6 +57,16 @@ exports.getUserPlants = async (req, res) => {
   }
 };
 
+exports.getAvailablePlants = async (req, res) => {
+  try {
+    const plants = await plantModel.getAvailablePlants();
+    res.status(200).json(plants);
+  } catch (error) {
+    console.error("Error fetching available plants:", error);
+    res.status(500).json({ message: "Error fetching available plants" });
+  }
+};
+
 exports.deleteUserPlant = async (req, res) => {
   const plantId = req.params.plantId;
   console.log(`Attempting to delete plant with ID: ${plantId}`); // Log l'ID de la plante
