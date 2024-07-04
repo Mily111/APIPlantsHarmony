@@ -79,8 +79,19 @@ async function addOrUpdatePlantSuggestion({
   }
 }
 
+// async function getUserPlants(userId) {
+//   const query = "SELECT * FROM plante_suggested WHERE id_user = ?";
+//   try {
+//     const [plants] = await db.query(query, [userId]);
+//     return plants;
+//   } catch (error) {
+//     console.error("Error fetching user's plants:", error);
+//     throw new Error("Database error");
+//   }
+// }
 async function getUserPlants(userId) {
-  const query = "SELECT * FROM plante_suggested WHERE id_user = ?";
+  const query =
+    "SELECT * FROM plante_suggested WHERE id_user = ? AND state_exchange = 'disponible'";
   try {
     const [plants] = await db.query(query, [userId]);
     return plants;
@@ -102,24 +113,22 @@ async function deleteUserPlantByID(plantId) {
   }
 }
 
-// // Fonction pour supprimer une plante par ID
-// async function deletePlantById(plantId) {
-//   console.log("enter deleteById");
-//   try {
-//     await db.query(
-//       "DELETE FROM plante_suggested WHERE Id_plante_suggested = ?",
-//       [plantId]
-//     );
-//     console.log("Plant deleted from DB:", plantId);
-//   } catch (error) {
-//     console.error("Error deleting plant by ID:", error);
-//     throw new Error("Database error");
-//   }
-// }
+async function updatePlantState(plantId, stateExchange) {
+  const query =
+    "UPDATE plante_suggested SET state_exchange = ? WHERE id_plante_suggested = ?";
+  try {
+    const [result] = await db.execute(query, [stateExchange, plantId]);
+    return result;
+  } catch (error) {
+    console.error("Error updating plant state:", error);
+    throw new Error("Database error");
+  }
+}
 
 module.exports = {
   getPlantNamesFromDB,
   addOrUpdatePlantSuggestion,
   getUserPlants,
   deleteUserPlantByID,
+  updatePlantState,
 };

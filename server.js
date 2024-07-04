@@ -11,7 +11,7 @@ const tradeRoutes = require("./routes/tradeRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-
+const path = require("path");
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
@@ -31,12 +31,34 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 const app = express();
 
+// Servir les fichiers statiques du dossier Next.js
+// const nextjsPublicPath = path.join(
+//   "C:\\Users\\emili\\OneDrive\\Bureau\\plants-harmony-web\\public\\images\\plants"
+// );
+// Chemin relatif basé sur la position du fichier serveur
+// const nextjsPublicPath = path.join(
+//   __dirname,
+//   "../plants-harmony-web/public/images/plants"
+// );
+
+// app.use("/images", express.static(nextjsPublicPath));
+
+// Chemin relatif basé sur la position du fichier serveur
+const nextjsPublicPath = path.join(
+  __dirname,
+  "../plants-harmony-web/public/images/plants"
+);
+
+// Servir les fichiers statiques
+app.use("/images/plants", express.static(nextjsPublicPath));
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(session({ secret: "secret", resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
+// Middleware pour analyser les requêtes JSON
 app.use(express.json());
 
 // Routes

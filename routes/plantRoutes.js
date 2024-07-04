@@ -4,9 +4,10 @@ const plantController = require("../controllers/plantController");
 const multer = require("multer");
 const path = require("path");
 // Définissez le chemin complet vers le dossier public/images/plants de votre application Next.js
+// Chemin vers le dossier public/images/plants de votre application Next.js
 const nextjsPublicPath = path.join(
   __dirname,
-  "../../PLANTS-HARMONY-WEB/public/images/plants"
+  "../../plants-harmony-web/public/images/plants"
 );
 
 const storage = multer.diskStorage({
@@ -29,12 +30,10 @@ router.post(
   plantController.addPlantSuggestion
 );
 router.get("/getUserPlant/:userId", plantController.getUserPlants);
-// router.get("/getUserPlant/:userId", () => {
-//   console.log("toiti");
-// });
+
 router.delete("/deleteUserPlant/:plantId", plantController.deleteUserPlant);
-// router.delete("/deletetUserPlant/:plantId", () => {
-//   console.log("toto");
-// });
+
+// Route pour mettre à jour l'état d'une plante
+router.put("/:id/state", plantController.updatePlantState);
 
 module.exports = router;

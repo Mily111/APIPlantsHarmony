@@ -1,71 +1,97 @@
-const Trade = require("../models/tradeModel");
+const tradeModel = require("../models/tradeModel");
 
-exports.getAllTrades = async (req, res) => {
+exports.createTradeOffer = async (req, res) => {
   try {
-    const trades = await Trade.getAllTrades();
-    res.status(200).json(trades);
+    const { requestedPlantId, userId, offeredPlantId } = req.body;
+    const tradeOfferId = await tradeModel.createTradeOffer({
+      requestedPlantId,
+      userId,
+      offeredPlantId,
+    });
+    res
+      .status(201)
+      .json({ message: "Trade offer created successfully", tradeOfferId });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error creating trade offer:", error);
+    res.status(500).json({ message: "Error creating trade offer" });
   }
 };
 
-exports.createTrade = async (req, res) => {
-  const { Id_user, Id_plante_suggested, Id_plante_suggested_1 } = req.body;
+exports.getTradeOffersForUser = async (req, res) => {
   try {
-    await Trade.createTrade(
-      Id_user,
-      Id_plante_suggested,
-      Id_plante_suggested_1
+    const { userId } = req.params;
+    const tradeOffers = await tradeModel.getTradeOffersForUser(userId);
+    res.status(200).json(tradeOffers);
+  } catch (error) {
+    console.error("Error fetching trade offers:", error);
+    res.status(500).json({ message: "Error fetching trade offers" });
+  }
+};
+
+exports.updateTradeOfferStatus = async (req, res) => {
+  try {
+    const { tradeOfferId } = req.params;
+    const { status } = req.body;
+    const affectedRows = await tradeModel.updateTradeOfferStatus(
+      tradeOfferId,
+      status
     );
-    res.status(200).json({ message: "Trade request created" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.getTradeById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const trade = await Trade.getTradeById(id);
-    if (!trade.length) {
-      return res.status(404).json({ message: "Trade not found du tout" });
+    if (affectedRows > 0) {
+      res
+        .status(200)
+        .json({ message: "Trade offer status updated successfully" });
+    } else {
+      res.status(404).json({ message: "Trade offer not found" });
     }
-    res.status(200).json(trade[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating trade offer status:", error);
+    res.status(500).json({ message: "Error updating trade offer status" });
   }
 };
 
-exports.updateTrade = async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
+exports.createNotification = async (req, res) => {
   try {
-    await Trade.updateTrade(id, data);
-    res.status(200).json({ message: "Trade updated" });
+    const { userId, message, tradeOfferId } = req.body;
+    const notificationId = await tradeModel.createNotification({
+      userId,
+      message,
+      tradeOfferId,
+    });
+    res
+      .status(201)
+      .json({ message: "Notification created successfully", notificationId });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error creating notification:", error);
+    res.status(500).json({ message: "Error creating notification" });
   }
 };
 
-exports.deleteTrade = async (req, res) => {
-  const { id } = req.params;
+exports.getNotificationsForUser = async (req, res) => {
   try {
-    await Trade.deleteTrade(id);
-    res.status(200).json({ message: "Trade deleted" });
+    const { userId } = req.params;
+    const notifications = await tradeModel.getNotificationsForUser(userId);
+    res.status(200).json(notifications);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ message: "Error fetching notifications" });
   }
 };
 
-exports.getAvailableTrades = async (req, res) => {
+exports.markNotificationAsRead = async (req, res) => {
   try {
-    const trades = await Trade.getAvailableTrades();
-    // if (trades.length === 0) {
-    //   return res.status(404).json({ message: "Trade not found" });
-    // }
-    res.status(200).json(trades);
+    const { notificationId } = req.params;
+    const affectedRows = await tradeModel.markNotificationAsRead(
+      notificationId
+    );
+    if (affectedRows > 0) {
+      res
+        .status(200)
+        .json({ message: "Notification marked as read successfully" });
+    } else {
+      res.status(404).json({ message: "Notification not found" });
+    }
   } catch (error) {
-    console.error("Error fetching available trades: ", error);
-    res.status(500).json({ error: error.message });
+    console.error("Error marking notification as read:", error);
+    res.status(500).json({ message: "Error marking notification as read" });
   }
 };

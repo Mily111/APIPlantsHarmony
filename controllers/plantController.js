@@ -70,15 +70,20 @@ exports.deleteUserPlant = async (req, res) => {
     res.status(500).json({ message: "An error occurred on the server", error });
   }
 };
-// exports.deleteUserPlant = async (req, res) => {
-//   console.log("enter in deleteUserplant");
-//   const plantId = req.params.plantId;
-//   console.log(plantId);
-//   try {
-//     await plantModel.deletePlantById(plantId);
-//     res.status(200).json({ message: "Plant deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting plant:", error);
-//     res.status(500).json({ message: "An error occurred on the server", error });
-//   }
-// };
+
+// Fonction pour mettre à jour l'état d'une plante
+exports.updatePlantState = async (req, res) => {
+  const plantId = req.params.id;
+  const { state_exchange } = req.body;
+
+  try {
+    const result = await plantModel.updatePlantState(plantId, state_exchange);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Plant not found" });
+    } else {
+      res.json({ message: "Plant state updated", result });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating plant state", error });
+  }
+};

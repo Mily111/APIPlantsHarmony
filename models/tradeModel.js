@@ -1,77 +1,121 @@
 const db = require("../config/db");
 
-const Trade = {
-  getAllTrades: async () => {
-    try {
-      const [rows] = await db.query(`
-        SELECT r.*, ps.photo, ps.state_exchange, gp.name_plant, u.username 
-        FROM request r
-        JOIN plante_suggested ps ON r.Id_plante_suggested = ps.Id_plante_suggested
-        JOIN generic_plants gp ON ps.Id_plant = gp.Id_plant
-        JOIN users u ON r.Id_user = u.Id_user
-        WHERE r.date_validation IS NULL
-      `);
-      return rows;
-    } catch (err) {
-      throw err;
-    }
-  },
-  createTrade: async (Id_user, Id_plante_suggested, Id_plante_suggested_1) => {
-    try {
-      await db.query(
-        "INSERT INTO request (Id_user, Id_plante_suggested, Id_plante_suggested_1, date_request) VALUES (?, ?, ?, NOW())",
-        [Id_user, Id_plante_suggested, Id_plante_suggested_1]
-      );
-    } catch (err) {
-      throw err;
-    }
-  },
-  getTradeById: async (id) => {
-    try {
-      const [rows] = await db.query(
-        "SELECT * FROM request WHERE Id_request = ?",
-        [id]
-      );
-      return rows;
-    } catch (err) {
-      throw err;
-    }
-  },
-  updateTrade: async (id, data) => {
-    try {
-      await db.query("UPDATE request SET ? WHERE Id_request = ?", [data, id]);
-    } catch (err) {
-      throw err;
-    }
-  },
-  deleteTrade: async (id) => {
-    try {
-      await db.query("DELETE FROM request WHERE Id_request = ?", [id]);
-    } catch (err) {
-      throw err;
-    }
-  },
-  getAvailableTrades: async () => {
-    try {
-      const [rows] = await db.query(`
-          SELECT ps.Id_plante_suggested, ps.photo, ps.state_exchange, gp.name_plant, u.username
-          FROM plante_suggested ps
-          JOIN generic_plants gp ON ps.Id_plant = gp.Id_plant
-          JOIN users u ON ps.Id_user = u.Id_user
-          WHERE ps.state_exchange = 'disponible'
-        `);
+async function createTradeOffer({
+  requestedPlantId,
+  userId,
+  offeredPlantId,
+  status = "pending",
+}) {
+  const query = `
+    INSERT INTO request (Id_plante_suggested, Id_user, Id_plante_suggested_1, date_request, status)
+    VALUES (?, ?, ?, NOW(), ?)
+  `;
+  try {
+    const [result] = await db.execute(query, [
+      requestedPlantId,
+      userId,
+      offeredPlantId,
+      status,
+    ]);
+    return result.insertId;
+  } catch (error) {
+    console.error("Error creating trade offer:", error);
+    throw new Error("Database error");
+  }
+}
 
-      console.log("Query result:", rows);
+async function getTradeOffersForUser(userId) {
+  const query = `
+    SELECT r.*, ps1.photo AS offered_photo, ps2.photo AS requested_photo, gp1.name_plant AS offered_name, gp2.name_plant AS requested_name
+    FROM request r
+    JOIN plante_suggested ps1 ON r.Id_plante_suggested_1 = ps1.Id_plante_suggested
+    JOIN plante_suggested ps2 ON r.Id_plante_suggested = ps2.Id_plante_suggested
+    JOIN generic_plants gp1 ON ps1.Id_plant = gp1.Id_plant
+    JOIN generic_plants gp2 ON ps2.Id_plant = gp2.Id_plant
+    WHERE r.Id_user = ? OR ps2.Id_user = ?
+  `;
+  try {
+    const [results] = await db.execute(query, [userId, userId]);
+    return results;
+  } catch (error) {
+    console.error("Error fetching trade offers:", error);
+    throw new Error("Database error");
+  }
+}
 
-      if (!rows || rows.length === 0) {
-        return [];
-      }
-      return rows;
-    } catch (err) {
-      console.error("Error fetching available trades:", err);
-      throw err;
-    }
-  },
+async function updateTradeOfferStatus(tradeOfferId, status) {
+  const query = `
+    UPDATE request
+    SET status = ?
+    WHERE Id_request = ?
+  `;
+  try {
+    const [result] = await db.execute(query, [status, tradeOfferId]);
+    return result.affectedRows;
+  } catch (error) {
+    console.error("Error updating trade offer status:", error);
+    throw new Error("Database error");
+  }
+}
+
+async function createNotification({
+  userId,
+  message,
+  tradeOfferId,
+  readStatus = false,
+}) {
+  const query = `
+    INSERT INTO notifications (user_id, message, trade_offer_id, read_status)
+    VALUES (?, ?, ?, ?)
+  `;
+  try {
+    const [result] = await db.execute(query, [
+      userId,
+      message,
+      tradeOfferId,
+      readStatus,
+    ]);
+    return result.insertId;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    throw new Error("Database error");
+  }
+}
+
+async function getNotificationsForUser(userId) {
+  const query = `
+    SELECT * FROM notifications
+    WHERE user_id = ?
+  `;
+  try {
+    const [results] = await db.execute(query, [userId]);
+    return results;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    throw new Error("Database error");
+  }
+}
+
+async function markNotificationAsRead(notificationId) {
+  const query = `
+    UPDATE notifications
+    SET read_status = true
+    WHERE id = ?
+  `;
+  try {
+    const [result] = await db.execute(query, [notificationId]);
+    return result.affectedRows;
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    throw new Error("Database error");
+  }
+}
+
+module.exports = {
+  createTradeOffer,
+  getTradeOffersForUser,
+  updateTradeOfferStatus,
+  createNotification,
+  getNotificationsForUser,
+  markNotificationAsRead,
 };
-
-module.exports = Trade;
