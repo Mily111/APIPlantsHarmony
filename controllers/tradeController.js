@@ -35,6 +35,23 @@ exports.createTradeOffer = async (req, res) => {
       userId,
       offeredPlantId,
     });
+
+    // Récupérer les informations des plantes et des utilisateurs pour la notification
+    const requestedPlant = await tradeModel.getPlantById(requestedPlantId);
+    const offeredPlant = await tradeModel.getPlantById(offeredPlantId);
+    const requestedPlantOwner = requestedPlant.Id_user;
+    const offeredPlantName = offeredPlant.name_plant;
+    const requestedPlantName = requestedPlant.name_plant;
+
+    const message = `L'utilisateur ${userId} vous demande si vous acceptez sa demande de troc : échange de ${offeredPlantName} contre ${requestedPlantName}.`;
+
+    // Créer une notification pour le propriétaire de la plante demandée
+    await tradeModel.createNotification({
+      userId: requestedPlantOwner,
+      message,
+      tradeOfferId,
+    });
+
     res
       .status(201)
       .json({ message: "Trade offer created successfully", tradeOfferId });
@@ -44,6 +61,34 @@ exports.createTradeOffer = async (req, res) => {
   }
 };
 
+// exports.requestTrade = async (req, res) => {
+//   try {
+//     const { requestedPlantId, userId, offeredPlantId } = req.body;
+//     const tradeOfferId = await tradeModel.createTradeOffer({
+//       requestedPlantId,
+//       userId,
+//       offeredPlantId,
+//     });
+
+//     // Envoyer une notification au propriétaire de la plante demandée
+//     const requestedPlantOwnerId = await tradeModel.getPlantOwner(
+//       requestedPlantId
+//     );
+//     await tradeModel.createNotification({
+//       userId: requestedPlantOwnerId,
+//       message: `Vous avez une nouvelle demande de troc de l'utilisateur ${userId}`,
+//       tradeOfferId,
+//     });
+
+//     res
+//       .status(201)
+//       .json({ message: "Trade request created successfully", tradeOfferId });
+//   } catch (error) {
+//     console.error("Error creating trade request:", error);
+//     res.status(500).json({ message: "Error creating trade request" });
+//   }
+// };
+
 exports.requestTrade = async (req, res) => {
   try {
     const { requestedPlantId, userId, offeredPlantId } = req.body;
@@ -52,20 +97,9 @@ exports.requestTrade = async (req, res) => {
       userId,
       offeredPlantId,
     });
-
-    // Envoyer une notification au propriétaire de la plante demandée
-    const requestedPlantOwnerId = await tradeModel.getPlantOwner(
-      requestedPlantId
-    );
-    await tradeModel.createNotification({
-      userId: requestedPlantOwnerId,
-      message: `Vous avez une nouvelle demande de troc de l'utilisateur ${userId}`,
-      tradeOfferId,
-    });
-
     res
       .status(201)
-      .json({ message: "Trade request created successfully", tradeOfferId });
+      .json({ message: "Trade offer created successfully", tradeOfferId });
   } catch (error) {
     console.error("Error creating trade request:", error);
     res.status(500).json({ message: "Error creating trade request" });

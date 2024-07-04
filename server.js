@@ -9,9 +9,11 @@ const plantRoutes = require("./routes/plantRoutes");
 const plantAdviceRoutes = require("./routes/plantAdviceRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const path = require("path");
+
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
@@ -30,18 +32,6 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 const app = express();
-
-// Servir les fichiers statiques du dossier Next.js
-// const nextjsPublicPath = path.join(
-//   "C:\\Users\\emili\\OneDrive\\Bureau\\plants-harmony-web\\public\\images\\plants"
-// );
-// Chemin relatif basé sur la position du fichier serveur
-// const nextjsPublicPath = path.join(
-//   __dirname,
-//   "../plants-harmony-web/public/images/plants"
-// );
-
-// app.use("/images", express.static(nextjsPublicPath));
 
 // Chemin relatif basé sur la position du fichier serveur
 const nextjsPublicPath = path.join(
@@ -66,6 +56,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/plants", plantRoutes);
 app.use("/api/plantsAdvice", plantAdviceRoutes);
 app.use("/api/trades", tradeRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
