@@ -1,63 +1,8 @@
-const db = require("../config/db"); // Assurez-vous que le chemin est correct
+const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
-// exports.registerUser = async (req, res) => {
-//   const { username, email_user, password_user } = req.body;
-
-//   // Validation des champs requis
-//   if (!username || !email_user || !password_user) {
-//     return res.status(400).json({ message: "Missing required fields" });
-//   }
-
-//   // Validation de l'email
-//   if (!isValidEmail(email_user)) {
-//     return res.status(400).json({ message: "Invalid email format" });
-//   }
-
-//   // Vérifier l'existence du nom d'utilisateur ou de l'email
-//   try {
-//     const checkUser = `SELECT * FROM users WHERE username = ? OR email_user = ?`;
-//     const [userExists] = await db.execute(checkUser, [username, email_user]);
-
-//     if (userExists.length > 0) {
-//       return res
-//         .status(409)
-//         .json({ message: "Username or email already exists" });
-//     }
-//   } catch (checkError) {
-//     return res.status(500).json({
-//       message: "Internal server error",
-//       error: checkError.message,
-//     });
-//   }
-
-//   // Essayer de créer l'utilisateur
-//   try {
-//     const hashedPassword = await bcrypt.hash(password_user, 10);
-//     const query = `INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)`;
-//     const [results] = await db.execute(query, [
-//       username,
-//       email_user,
-//       hashedPassword,
-//     ]);
-
-//     res.status(201).json({
-//       message: "User registered successfully",
-//       userId: results.insertId,
-//     });
-//   } catch (checkError) {
-//     // Utiliser un message générique pour toutes les erreurs serveur
-//     return res
-//       .status(500)
-//       .json({ message: "Internal server error", error: checkError.message });
-//   }
-// };
-
-// function isValidEmail(email) {
-//   return /\S+@\S+\.\S+/.test(email);
-// }
 
 function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -237,69 +182,6 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: "Failed to update user" });
   }
 };
-
-// exports.deleteUser = async (req, res) => {
-//   const { id } = req.params;
-
-//   try {
-//     const [result] = await db.query("DELETE FROM users WHERE id_user = ?", [
-//       id,
-//     ]);
-
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     res.json({ message: "User deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting user:", error);
-//     res.status(500).json({ message: "An error occurred while deleting user" });
-//   }
-// };
-
-// exports.deleteUser = async (req, res) => {
-//   const { id } = req.params;
-
-//   try {
-//     // Récupérer les chemins des images des plantes de l'utilisateur
-//     const [plants] = await db.query(
-//       "SELECT photo FROM plante_suggested WHERE id_user = ?",
-//       [id]
-//     );
-
-//     // Supprimer les entrées de la table plante_suggested
-//     await db.query("DELETE FROM plante_suggested WHERE id_user = ?", [id]);
-
-//     // Supprimer l'utilisateur
-//     const [result] = await db.query("DELETE FROM users WHERE id_user = ?", [
-//       id,
-//     ]);
-
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     // Supprimer les fichiers images associés
-//     plants.forEach((plant) => {
-//       if (plant.photo) {
-//         const filePath = path.join(
-//           __dirname,
-//           "../../plants-harmony-web/public/images/plants"
-//         );
-//         fs.unlink(filePath, (err) => {
-//           if (err) {
-//             console.error("Erreur lors de la suppression de l'image:", err);
-//           }
-//         });
-//       }
-//     });
-
-//     res.json({ message: "User deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting user:", error);
-//     res.status(500).json({ message: "An error occurred while deleting user" });
-//   }
-// };
 
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;

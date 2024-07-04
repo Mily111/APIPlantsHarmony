@@ -1,6 +1,31 @@
-// controllers/tradeController.js
+// // controllers/tradeController.js
 
 const tradeModel = require("../models/tradeModel");
+
+exports.getAvailablePlantsForTrade = async (req, res) => {
+  try {
+    const plants = await tradeModel.getAvailablePlantsForTrade();
+    res.status(200).json(plants);
+  } catch (error) {
+    console.error("Error fetching available plants for trade:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching available plants for trade" });
+  }
+};
+
+exports.getAvailablePlantsForUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const plants = await tradeModel.getAvailablePlantsForUser(userId);
+    res.status(200).json(plants);
+  } catch (error) {
+    console.error("Error fetching available plants for user:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching available plants for user" });
+  }
+};
 
 exports.createTradeOffer = async (req, res) => {
   try {
@@ -16,6 +41,34 @@ exports.createTradeOffer = async (req, res) => {
   } catch (error) {
     console.error("Error creating trade offer:", error);
     res.status(500).json({ message: "Error creating trade offer" });
+  }
+};
+
+exports.requestTrade = async (req, res) => {
+  try {
+    const { requestedPlantId, userId, offeredPlantId } = req.body;
+    const tradeOfferId = await tradeModel.createTradeOffer({
+      requestedPlantId,
+      userId,
+      offeredPlantId,
+    });
+
+    // Envoyer une notification au propriétaire de la plante demandée
+    const requestedPlantOwnerId = await tradeModel.getPlantOwner(
+      requestedPlantId
+    );
+    await tradeModel.createNotification({
+      userId: requestedPlantOwnerId,
+      message: `Vous avez une nouvelle demande de troc de l'utilisateur ${userId}`,
+      tradeOfferId,
+    });
+
+    res
+      .status(201)
+      .json({ message: "Trade request created successfully", tradeOfferId });
+  } catch (error) {
+    console.error("Error creating trade request:", error);
+    res.status(500).json({ message: "Error creating trade request" });
   }
 };
 
