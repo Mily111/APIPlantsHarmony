@@ -61,34 +61,6 @@ exports.createTradeOffer = async (req, res) => {
   }
 };
 
-// exports.requestTrade = async (req, res) => {
-//   try {
-//     const { requestedPlantId, userId, offeredPlantId } = req.body;
-//     const tradeOfferId = await tradeModel.createTradeOffer({
-//       requestedPlantId,
-//       userId,
-//       offeredPlantId,
-//     });
-
-//     // Envoyer une notification au propriétaire de la plante demandée
-//     const requestedPlantOwnerId = await tradeModel.getPlantOwner(
-//       requestedPlantId
-//     );
-//     await tradeModel.createNotification({
-//       userId: requestedPlantOwnerId,
-//       message: `Vous avez une nouvelle demande de troc de l'utilisateur ${userId}`,
-//       tradeOfferId,
-//     });
-
-//     res
-//       .status(201)
-//       .json({ message: "Trade request created successfully", tradeOfferId });
-//   } catch (error) {
-//     console.error("Error creating trade request:", error);
-//     res.status(500).json({ message: "Error creating trade request" });
-//   }
-// };
-
 exports.requestTrade = async (req, res) => {
   try {
     const { requestedPlantId, userId, offeredPlantId } = req.body;
@@ -116,25 +88,45 @@ exports.getTradeOffersForUser = async (req, res) => {
     res.status(500).json({ message: "Error fetching trade offers" });
   }
 };
+exports.acceptTrade = async (req, res) => {
+  try {
+    const tradeOfferId = req.params.tradeOfferId;
+    await TradeModel.updateTradeStatus(tradeOfferId, "accepted");
+    res.status(200).json({ message: "Trade accepted successfully" });
+  } catch (error) {
+    console.error("Error accepting trade:", error);
+    res.status(500).json({ message: "Error accepting trade" });
+  }
+};
+
+exports.rejectTrade = async (req, res) => {
+  try {
+    const tradeOfferId = req.params.tradeOfferId;
+    await TradeModel.updateTradeStatus(tradeOfferId, "rejected");
+    res.status(200).json({ message: "Trade rejected successfully" });
+  } catch (error) {
+    console.error("Error rejecting trade:", error);
+    res.status(500).json({ message: "Error rejecting trade" });
+  }
+};
 
 exports.updateTradeOfferStatus = async (req, res) => {
+  const tradeOfferId = req.params.tradeOfferId;
+  const status = req.params.status;
+
+  if (!tradeOfferId || !status) {
+    return res.status(400).json({ message: "Invalid parameters" });
+  }
+
   try {
-    const { tradeOfferId } = req.params;
-    const { status } = req.body;
-    const affectedRows = await tradeModel.updateTradeOfferStatus(
+    const result = await tradeModel.updateTradeOfferStatus(
       tradeOfferId,
       status
     );
-    if (affectedRows > 0) {
-      res
-        .status(200)
-        .json({ message: "Trade offer status updated successfully" });
-    } else {
-      res.status(404).json({ message: "Trade offer not found" });
-    }
+    return res.json(result);
   } catch (error) {
     console.error("Error updating trade offer status:", error);
-    res.status(500).json({ message: "Error updating trade offer status" });
+    return res.status(500).json({ message: "Database error" });
   }
 };
 
@@ -198,7 +190,7 @@ exports.getAvailableTrades = async (req, res) => {
         id_plant: 3,
         name_plant: "Rose",
       },
-      // Ajoutez d'autres plantes suggérées si nécessaire
+      
     ];
     res.status(200).json(suggestedPlants);
   } catch (error) {

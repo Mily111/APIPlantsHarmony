@@ -124,15 +124,25 @@ async function getTradeOffersForUser(userId) {
   }
 }
 
+// Fonction pour mettre à jour le statut de l'offre de troc
 async function updateTradeOfferStatus(tradeOfferId, status) {
-  const query = `
-    UPDATE request
-    SET status = ?
-    WHERE Id_request = ?
-  `;
+  // Vérifiez que les paramètres ne sont pas undefined
+  if (typeof tradeOfferId === "undefined" || typeof status === "undefined") {
+    throw new Error("Invalid parameters: tradeOfferId or status is undefined");
+  }
+
+  console.log("Updating trade offer status:", tradeOfferId, status); // Log pour débogage
+
   try {
-    const [result] = await db.execute(query, [status, tradeOfferId]);
-    return result.affectedRows;
+    const [result] = await db.execute(
+      `
+      UPDATE request
+      SET status = ?
+      WHERE Id_request = ?
+    `,
+      [status, tradeOfferId]
+    );
+    return result;
   } catch (error) {
     console.error("Error updating trade offer status:", error);
     throw new Error("Database error");

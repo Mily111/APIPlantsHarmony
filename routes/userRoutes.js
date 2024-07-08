@@ -68,4 +68,10 @@ router.get("/profil", userController.getUserProfil);
 router.put("/update/:id", userController.updateUser);
 router.delete("/delete/:id", userController.deleteUser);
 
+// Add this route to get user statistics
+router.get("/statistics", userController.getUserStatistics);
+router.get("/plant_counts", userController.getUserPlantCounts);
+router.get("/trade_requests", userController.getUserTradeRequests);
 module.exports = router;
+
+router.delete("/admin/delete/:id", userController.adminDeleteUser);

@@ -247,3 +247,168 @@ exports.deleteUser = async (req, res) => {
     connection.release();
   }
 };
+
+exports.getUserStatistics = async (req, res) => {
+  try {
+    const query = `
+      SELECT u.username, 
+             COUNT(DISTINCT ps.Id_plante_suggested) AS plant_count,
+             COUNT(DISTINCT upi.id_user_plant_interactions) AS interaction_count
+      FROM users u
+      LEFT JOIN plante_suggested ps ON u.Id_user = ps.Id_user
+      LEFT JOIN user_plant_interactions upi ON u.Id_user = upi.user_id
+      GROUP BY u.username
+    `;
+    const [results] = await db.execute(query);
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching user statistics:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+exports.getUserPlantCounts = async (req, res) => {
+  try {
+    const query = `
+      SELECT u.username,
+             COUNT(ps.Id_plante_suggested) AS plant_count
+      FROM users u
+      LEFT JOIN plante_suggested ps ON u.Id_user = ps.Id_user
+      GROUP BY u.username
+    `;
+    const [results] = await db.execute(query);
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching user plant counts:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+exports.getUserTradeRequests = async (req, res) => {
+  try {
+    const query = `
+      SELECT u.username,
+             COUNT(r.Id_request) AS trade_request_count
+      FROM users u
+      LEFT JOIN request r ON u.Id_user = r.Id_user
+      GROUP BY u.username
+    `;
+    const [results] = await db.execute(query);
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching user trade requests:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+// Nouvelle fonction de suppression pour les administrateurs
+exports.adminDeleteUser = async (req, res) => {
+  const { id } = req.params;
+  const token = req.headers["authorization"];
+
+  if (!token) {
+    return res.status(401).json({ message: "Token is missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const requestingUserId = decoded.id;
+
+    if (!(await isAdmin(requestingUserId))) {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    // Récupérer les chemins des images des plantes de l'utilisateur
+    const [plants] = await connection.query(
+      "SELECT photo FROM plante_suggested WHERE id_user = ?",
+      [id]
+    );
+
+    // Supprimer les entrées de la table plante_suggested
+    await connection.query("DELETE FROM plante_suggested WHERE id_user = ?", [
+      id,
+    ]);
+
+    // Supprimer les interactions utilisateur-plante
+    await connection.query(
+      "DELETE FROM user_plant_interactions WHERE user_id = ?",
+      [id]
+    );
+
+    // Supprimer les demandes de troc
+    await connection.query("DELETE FROM request WHERE Id_user = ?", [id]);
+
+    // Supprimer les notifications
+    await connection.query("DELETE FROM notifications WHERE user_id = ?", [id]);
+
+    // Supprimer l'utilisateur
+    const [result] = await connection.query(
+      "DELETE FROM users WHERE id_user = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Supprimer les fichiers images associés
+    plants.forEach((plant) => {
+      if (plant.photo) {
+        const filePath = path.resolve(
+          __dirname,
+          "../../plants-harmony-web/public/",
+          plant.photo
+        );
+        console.log("Attempting to delete:", filePath); // Log the file path
+
+        // Vérifiez que le fichier existe avant de le supprimer
+        if (fs.existsSync(filePath)) {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error("Erreur lors de la suppression de l'image:", err);
+            } else {
+              console.log("Successfully deleted:", filePath);
+            }
+          });
+        } else {
+          console.warn("File does not exist:", filePath);
+        }
+      }
+    });
+
+    // Générer un fichier de résumé pour l'utilisateur supprimé
+    const userSummaryPath = path.resolve(
+      __dirname,
+      `../../deleted_users/${id}_summary.txt`
+    );
+    const userSummaryContent = `
+      User ID: ${id}
+      Username: ${req.body.username}
+      Email: ${req.body.email_user}
+      Date Deleted: ${new Date().toISOString()}
+    `;
+    fs.writeFileSync(userSummaryPath, userSummaryContent);
+
+    await connection.commit();
+    res.json({
+      message: "User deleted successfully",
+      summaryPath: userSummaryPath,
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "An error occurred while deleting user" });
+  } finally {
+    connection.release();
+  }
+};
