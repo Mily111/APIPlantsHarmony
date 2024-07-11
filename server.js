@@ -37,7 +37,7 @@ const app = express();
 // Chemin relatif basé sur la position du fichier serveur
 const nextjsPublicPath = path.join(
   __dirname,
-  "../plants-harmony-web/public/images/plants"
+  "../plants_harmony_web/public/images/plants"
 );
 
 // Servir les fichiers statiques

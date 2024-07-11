@@ -8,7 +8,7 @@ const path = require("path");
 
 const nextjsPublicPath = path.join(
   __dirname,
-  "../../plants-harmony-web/public/images/plants"
+  "../../plants_harmony_web/public/images/plants"
 );
 
 const storage = multer.diskStorage({

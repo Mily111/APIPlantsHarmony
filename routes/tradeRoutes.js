@@ -15,22 +15,15 @@ router.get(
   tradeController.getAvailablePlantsForUser
 );
 
+router.get(
+  "/getAvailablePlantsForTrade",
+  tradeController.getAvailablePlantsForTrade
+);
 router.put("/accept/:tradeOfferId", tradeController.acceptTrade);
 router.put("/reject/:tradeOfferId", tradeController.rejectTrade);
 
 // Routes pour les messages
 router.post("/messages", messageController.createMessage);
 router.get("/messages/user/:userId", messageController.getMessagesForUser);
-
-// Routes pour les notifications
-router.post("/notifications/create", tradeController.createNotification);
-router.get(
-  "/notifications/user/:userId",
-  tradeController.getNotificationsForUser
-);
-router.put(
-  "/notifications/read/:notificationId",
-  tradeController.markNotificationAsRead
-);
 
 module.exports = router;
