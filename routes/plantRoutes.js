@@ -38,4 +38,11 @@ router.delete("/deleteUserPlant/:plantId", plantController.deleteUserPlant);
 // Route pour mettre à jour l'état d'une plante
 router.put("/:id/state", plantController.updatePlantState);
 
+router.get("/careSummary/:userId", plantController.getPlantCareSummary);
+
+router.get(
+  "/user/:userId/plantsInteractions",
+  plantController.getUserPlantsWithInteractions
+);
+
 module.exports = router;

@@ -11,6 +11,7 @@ const tradeRoutes = require("./routes/tradeRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 const sessionClientLourdRoutes = require("./routes/sessionClientLourdRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const interactionRoutes = require("./routes/interactionRoutes");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const path = require("path");
@@ -61,5 +62,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/sessionsClientLourd", sessionClientLourdRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use("/api/interactions", interactionRoutes);
 
 module.exports = app;

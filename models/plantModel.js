@@ -371,13 +371,28 @@ async function addOrUpdatePlantSuggestion({
   }
 }
 
+// async function getUserPlants(userId) {
+//   const query = "SELECT * FROM plante_suggested WHERE id_user = ?";
+//   try {
+//     const [plants] = await db.query(query, [userId]);
+//     return plants;
+//   } catch (error) {
+//     console.error("Error fetching user's plants:", error);
+//     throw new Error("Database error");
+//   }
+// }
 async function getUserPlants(userId) {
-  const query = "SELECT * FROM plante_suggested WHERE id_user = ?";
+  const query = `
+    SELECT ps.Id_plante_suggested, ps.quantity_possess, ps.date_possess, ps.photo, ps.state_exchange, ps.Id_user, ps.Id_plant, gp.name_plant
+    FROM plante_suggested ps
+    JOIN generic_plants gp ON ps.Id_plant = gp.Id_plant
+    WHERE ps.Id_user = ?
+  `;
   try {
-    const [plants] = await db.query(query, [userId]);
+    const [plants] = await db.execute(query, [userId]);
     return plants;
   } catch (error) {
-    console.error("Error fetching user's plants:", error);
+    console.error("Error fetching plants for user:", error);
     throw new Error("Database error");
   }
 }
@@ -481,6 +496,51 @@ async function requestTrade({ requestedPlantId, userId, offeredPlantId }) {
   }
 }
 
+async function getPlantCareSummary(userId) {
+  const query = `
+    SELECT ps.Id_plante_suggested, ps.quantity_possess, ps.date_possess, ps.photo, ps.state_exchange, 
+           ps.Id_user, ps.Id_plant, gp.name_plant, i.created_at AS interaction_date, it.label_interaction_type
+    FROM plante_suggested ps
+    JOIN generic_plants gp ON ps.Id_plant = gp.Id_plant
+    LEFT JOIN (
+      SELECT Id_plant, MAX(created_at) as last_interaction_date
+      FROM user_plant_interactions
+      GROUP BY Id_plant
+    ) as last_interactions ON ps.Id_plant = last_interactions.Id_plant
+    LEFT JOIN user_plant_interactions i ON ps.Id_plant = i.Id_plant AND i.created_at = last_interactions.last_interaction_date
+    LEFT JOIN interaction_type it ON i.id_interaction_type = it.id_interaction_type
+    WHERE ps.Id_user = ?
+    ORDER BY last_interactions.last_interaction_date DESC
+  `;
+  try {
+    const [plants] = await db.query(query, [userId]);
+    return plants;
+  } catch (error) {
+    console.error("Error fetching plant care summary:", error);
+    throw new Error("Database error");
+  }
+}
+
+async function getUserPlantsWithInteractions(userId) {
+  const query = `
+    SELECT ps.Id_plante_suggested, ps.quantity_possess, ps.date_possess, ps.photo, ps.state_exchange, 
+           ps.Id_user, ps.Id_plant, gp.name_plant, upi.created_at AS created_at, it.label_interaction_type
+    FROM plante_suggested ps
+    JOIN generic_plants gp ON ps.Id_plant = gp.Id_plant
+    LEFT JOIN user_plant_interactions upi ON ps.Id_plante_suggested = upi.Id_plant
+    LEFT JOIN interaction_type it ON upi.id_interaction_type = it.id_interaction_type
+    WHERE ps.Id_user = ?
+    ORDER BY upi.created_at DESC
+  `;
+  try {
+    const [plants] = await db.query(query, [userId]);
+    return plants;
+  } catch (error) {
+    console.error("Error fetching user's plants with interactions:", error);
+    throw new Error("Database error");
+  }
+}
+
 module.exports = {
   getPlantNamesFromDB,
   addOrUpdatePlantSuggestion,
@@ -490,4 +550,6 @@ module.exports = {
   deleteUserPlantByID,
   updatePlantState,
   requestTrade,
+  getPlantCareSummary,
+  getUserPlantsWithInteractions,
 };

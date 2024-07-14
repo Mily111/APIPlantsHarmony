@@ -155,3 +155,46 @@ exports.updatePlantState = async (req, res) => {
     res.status(500).json({ message: "Error updating plant state", error });
   }
 };
+
+exports.getPlantCareSummary = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    console.log(`Fetching plant care summary for user ID: ${userId}`);
+    const plantCareSummary = await plantModel.getPlantCareSummary(userId);
+
+    if (plantCareSummary.length === 0) {
+      return res.status(404).json({ message: "No plant care data found" });
+    }
+
+    console.log(
+      `Plant care data found for user ID: ${userId}`,
+      plantCareSummary
+    );
+    res.status(200).json(plantCareSummary);
+  } catch (error) {
+    console.error("Error fetching plant care summary:", error);
+    res.status(500).json({ message: "An error occurred on the server", error });
+  }
+};
+exports.getUserPlantsWithInteractions = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    console.log(`Fetching plants with interactions for user ID: ${userId}`);
+    const plants = await plantModel.getUserPlantsWithInteractions(userId);
+
+    if (plants.length === 0) {
+      console.log(`No plants with interactions found for user ID: ${userId}`);
+      return res
+        .status(404)
+        .json({ message: "No plants with interactions found" });
+    }
+    console.log(
+      `Plants with interactions found for user ID: ${userId}`,
+      plants
+    );
+    res.status(200).json(plants);
+  } catch (error) {
+    console.error("Error fetching plants with interactions:", error);
+    res.status(500).json({ message: "An error occurred on the server", error });
+  }
+};
