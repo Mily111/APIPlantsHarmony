@@ -691,22 +691,31 @@ exports.rejectTrade = async (req, res) => {
 };
 
 exports.updateTradeOfferStatus = async (req, res) => {
-  const tradeOfferId = req.params.tradeOfferId;
-  const status = req.params.status;
+  const { tradeOfferId, status } = req.params;
+  console.log("Received request to update trade offer status:", {
+    tradeOfferId,
+    status,
+  });
 
   if (!tradeOfferId || !status) {
-    return res.status(400).json({ message: "Invalid parameters" });
+    return res.status(400).json({ message: "Missing tradeOfferId or status" });
   }
 
   try {
-    const result = await tradeModel.updateTradeOfferStatus(
+    const updated = await tradeModel.updateTradeOfferStatus(
       tradeOfferId,
       status
     );
-    return res.json(result);
+    if (updated) {
+      res
+        .status(200)
+        .json({ message: "Trade offer status updated successfully" });
+    } else {
+      res.status(400).json({ message: "Failed to update trade offer status" });
+    }
   } catch (error) {
     console.error("Error updating trade offer status:", error);
-    return res.status(500).json({ message: "Database error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -728,5 +737,21 @@ exports.getAvailableTrades = async (req, res) => {
   } catch (error) {
     console.error("Error fetching available trades:", error);
     res.status(500).json({ message: "Error fetching available trades" });
+  }
+};
+
+exports.getTradeOfferById = async (req, res) => {
+  const { tradeOfferId } = req.params;
+
+  try {
+    const tradeOffer = await tradeModel.getTradeOfferById(tradeOfferId);
+    if (tradeOffer) {
+      res.status(200).json(tradeOffer);
+    } else {
+      res.status(404).json({ message: "Trade offer not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching trade offer:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

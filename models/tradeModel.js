@@ -92,22 +92,14 @@ async function getTradeOffersForUser(userId) {
 }
 
 async function updateTradeOfferStatus(tradeOfferId, status) {
-  if (typeof tradeOfferId === "undefined" || typeof status === "undefined") {
-    throw new Error("Invalid parameters: tradeOfferId or status is undefined");
-  }
-
-  console.log("Updating trade offer status:", tradeOfferId, status);
-
+  const query = `
+    UPDATE request
+    SET status = ?
+    WHERE Id_request = ?
+  `;
   try {
-    const [result] = await db.execute(
-      `
-      UPDATE request
-      SET status = ?
-      WHERE Id_request = ?
-    `,
-      [status, tradeOfferId]
-    );
-    return result;
+    const [result] = await db.execute(query, [status, tradeOfferId]);
+    return result.affectedRows;
   } catch (error) {
     console.error("Error updating trade offer status:", error);
     throw new Error("Database error");
@@ -143,20 +135,25 @@ async function getUserById(userId) {
   }
 }
 
-async function getTradeOfferById(tradeOfferId) {
+const getTradeOfferById = async (tradeOfferId) => {
   const query = `
-    SELECT *
-    FROM request
-    WHERE Id_request = ?
-  `;
+    SELECT r.*, u.username as receiver_name, p1.name_plant as offered_plant_name, p2.name_plant as requested_plant_name
+    FROM request r
+    JOIN users u ON r.Id_user = u.Id_user
+    JOIN plante_suggested ps1 ON r.Id_plante_suggested = ps1.Id_plante_suggested
+    JOIN plante_suggested ps2 ON r.Id_plante_suggested_1 = ps2.Id_plante_suggested
+    JOIN generic_plants p1 ON ps1.id_plant = p1.Id_plant
+    JOIN generic_plants p2 ON ps2.id_plant = p2.Id_plant
+    WHERE r.Id_request = ?`;
+
   try {
-    const [results] = await db.execute(query, [tradeOfferId]);
-    return results[0];
+    const [rows] = await db.execute(query, [tradeOfferId]);
+    return rows[0];
   } catch (error) {
-    console.error("Error fetching trade offer by ID:", error);
-    throw new Error("Database error");
+    console.error("Error fetching trade offer:", error);
+    throw error;
   }
-}
+};
 
 module.exports = {
   getAvailablePlantsForTrade,

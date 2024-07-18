@@ -14,7 +14,7 @@ router.get(
   "/availablePlantsForUser/:userId",
   tradeController.getAvailablePlantsForUser
 );
-
+router.get("/:tradeOfferId", tradeController.getTradeOfferById);
 router.get(
   "/getAvailablePlantsForTrade",
   tradeController.getAvailablePlantsForTrade

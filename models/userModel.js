@@ -2,6 +2,48 @@ const db = require("../config/db");
 const fs = require("fs");
 const path = require("path");
 
+// async function create(userData) {
+//   const query =
+//     "INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)";
+//   try {
+//     const [result] = await db.query(query, [
+//       userData.username,
+//       userData.email_user,
+//       userData.password_user,
+//     ]);
+//     return result;
+//   } catch (err) {
+//     throw new Error("Database error: " + err.message);
+//   }
+// }
+
+// async function findByUsername(username) {
+//   const query = "SELECT * FROM users WHERE username = ?";
+//   try {
+//     const [rows] = await db.query(query, [username]);
+//     return rows;
+//   } catch (err) {
+//     throw new Error("Database error: " + err.message);
+//   }
+// }
+
+// async function create(userData) {
+//   const query =
+//     "INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)";
+//   try {
+//     const [result] = await db.query(query, [
+//       userData.username,
+//       userData.email_user,
+//       userData.password_user,
+//     ]);
+//     console.log("Create user result:", result);
+//     return result;
+//   } catch (err) {
+//     console.error("Error in create:", err);
+//     throw new Error("Database error: " + err.message);
+//   }
+// }
+
 async function create(userData) {
   const query =
     "INSERT INTO users (username, email_user, password_user) VALUES (?, ?, ?)";
@@ -11,18 +53,34 @@ async function create(userData) {
       userData.email_user,
       userData.password_user,
     ]);
+    console.log("Create user result:", result);
     return result;
   } catch (err) {
+    console.error("Error in createUser:", err);
     throw new Error("Database error: " + err.message);
   }
 }
+
+// async function findByUsername(username) {
+//   const query = "SELECT * FROM users WHERE username = ?";
+//   try {
+//     const [rows] = await db.query(query, [username]);
+//     console.log("Find by username result:", rows);
+//     return rows;
+//   } catch (err) {
+//     console.error("Error in findByUsername:", err);
+//     throw new Error("Database error: " + err.message);
+//   }
+// }
 
 async function findByUsername(username) {
   const query = "SELECT * FROM users WHERE username = ?";
   try {
     const [rows] = await db.query(query, [username]);
+    console.log("Find by username result:", rows);
     return rows;
   } catch (err) {
+    console.error("Error in findByUsername:", err);
     throw new Error("Database error: " + err.message);
   }
 }
@@ -101,19 +159,6 @@ async function deleteUserById(userId) {
     throw new Error("Database error: " + err.message);
   }
 }
-
-// async function findById(userId) {
-//   const query = "SELECT * FROM users WHERE id_user = ?";
-//   try {
-//     const [rows] = await db.query(query, [userId]);
-//     if (rows.length === 0) {
-//       return null;
-//     }
-//     return rows[0]; // Retourner l'utilisateur trouvé
-//   } catch (err) {
-//     throw new Error("Database error: " + err.message);
-//   }
-// }
 
 async function findById(userId) {
   const query = "SELECT * FROM users WHERE id_user = ?";

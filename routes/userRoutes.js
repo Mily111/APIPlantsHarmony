@@ -1,7 +1,8 @@
-// routes/userRoutes.js
 const express = require("express");
 const userController = require("../controllers/userController");
 const router = express.Router();
+const csurf = require("csurf"); // Importer csurf
+const csrfProtection = csurf({ cookie: true });
 
 /**
  * @swagger
@@ -62,16 +63,21 @@ const router = express.Router();
  *                   example: "An error occurred on the server"
  */
 
-router.post("/register", userController.registerUser);
-router.post("/login", userController.loginUser);
+router.post("/register", csrfProtection, userController.registerUser);
+router.post("/login", csrfProtection, userController.loginUser);
 router.get("/profil", userController.getUserProfil);
-router.put("/update/:id", userController.updateUser);
-router.delete("/delete/:id", userController.deleteUser);
+router.put("/update/:id", csrfProtection, userController.updateUser);
+router.delete("/delete/:id", csrfProtection, userController.deleteUser);
 
 // Add this route to get user statistics
 router.get("/statistics", userController.getUserStatistics);
 router.get("/plant_counts", userController.getUserPlantCounts);
 router.get("/trade_requests", userController.getUserTradeRequests);
-module.exports = router;
 
-router.delete("/admin/delete/:id", userController.adminDeleteUser);
+router.delete(
+  "/admin/delete/:id",
+  csrfProtection,
+  userController.adminDeleteUser
+);
+
+module.exports = router;
